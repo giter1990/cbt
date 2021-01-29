@@ -1,11 +1,53 @@
+let payment = document.getElementById("payment");
+
+function cardElems() {
+	return ([
+		document.querySelectorAll("#platinum-card, #gold-card, #silver-card"),
+		document.querySelectorAll("#platinum-score, #gold-score, #silver-score"),
+		document.querySelectorAll("#platinum-descr, #gold-descr, #silver-descr")
+	]);
+}
+
+function payDim() {
+	if (window.innerHeight < 993) {
+		payment.style.height = (window.innerHeight - 100) + "px";
+		payment.style.overflow = "auto";
+	}
+}
+
 window.addEventListener("DOMContentLoaded", () => {
-	let bodyDoc = document.getElementById("bodyDoc");
+	let anyElem = document.querySelectorAll("*:not(html, body, .container, .container > *, #burger)"),
+		bonum = document.getElementById("bonum"),
+		reviewsSlider = document.querySelectorAll("#prev, #next"),
+		bodyDoc = document.getElementById("bodyDoc"),
+		btnRecord = document.querySelectorAll("#btn-header, #btn-menu, #btn-know, #btn-whom"),
+		cross = document.getElementById("cross"),
+		curtain = document.getElementById("curtain"),
+		popup = document.getElementById("popup");
+	
+	anyElem.forEach(item => {
+		item.addEventListener("mouseover", e => {
+			switch (e.target) {
+				case bonum.childNodes[0]:
+				case reviewsSlider[0]:
+				case reviewsSlider[1]:
+					item.style.transition = "0s";
+					break;
+				default: 
+					item.style.transition = ".5s";
+			}
+		});
+		
+		item.addEventListener("mouseout", e => {
+			item.style.transition = "0s";
+		})
+	});
 	
 	// Functions
 	function showModal(windowUnit) {
 		curtain.style.display = "block";
 		curtain.style.animation = "opacity 1s forwards";
-		windowUnit.style.display = "block";
+		windowUnit.style.display = "flex";
 		windowUnit.style.animation = "opacity 2s";
 	}
 	
@@ -16,12 +58,65 @@ window.addEventListener("DOMContentLoaded", () => {
 		}
 	}
 	
+	function pattern(label, input, btn, wrapper, mod = "", e) {
+		e.preventDefault();
+		
+		let errors = wrapper.querySelectorAll(".record__error");
+		
+		for (let i = 0; i < errors.length; i++) {
+			errors[i].remove();
+		}
+		
+		for (let i = 0; i < input.length; i++) {
+			if (!input[i].value) {
+				let error = document.createElement("div");
+				
+				error.classList.add("record__error");
+				
+				if (mod == null) {
+					mod = "";
+				}
+				
+				error.classList.add("record__error" + (i + 1) + mod);
+				
+				if (i == 0) {
+					error.innerHTML = "Введите имя";
+				} else if (i == 1) {
+					error.innerHTML = "Введите номер телефона";
+				} else {
+					error.innerHTML = "Введите почту";
+				}
+				
+				// Неверный формат номера телефона
+								
+				wrapper.appendChild(error);
+				
+				if (i <= 1) {
+					wrapper.insertBefore(error, label[i + 1]);
+				} else {
+					wrapper.insertBefore(error, btn);
+				}
+			}
+		}
+		
+		if (/[^a-zа-яё]/i.test(input[0].value)) {
+			let error = document.createElement("div");
+				
+			error.classList.add("record__error");
+			error.innerHTML = "Неверное имя";
+			wrapper.appendChild(error);
+			wrapper.insertBefore(error, label[1]);
+		}
+	}
+	
 	// Video
 	let playWrapper = document.getElementById("video"),
 		iframe = document.getElementById("frame"),
 		play = document.getElementById("play");
 		
-	play.addEventListener("click", () => {
+	play.addEventListener("click", e => {
+		e.preventDefault();
+		
 		play.style.display = "none";
 		playWrapper.style.alignItems = "stretch";
 		iframe.style.display = "block";
@@ -115,12 +210,10 @@ window.addEventListener("DOMContentLoaded", () => {
 		
 		progressMinute.style.width = (minutesEnd / 60 * 100) + "%";
 		
-		//
 		if (((secondsEnd !== 0) && (minutesEnd !== 0)) || ((secondsEnd == 0) && (minutesEnd !== 0)) || ((secondsEnd == 0) && (minutesEnd !== 0))) {
 			hoursEnd = hoursEnd + (minutesEnd / 60);
 		}
 		progressHour.style.width = (hoursEnd / 24 * 100) + "%";
-		//
 		
 		dayDiffPass = d.getDate() - dayStart;
 		dayLeft = dayTotal - dayDiffPass ;
@@ -144,7 +237,22 @@ window.addEventListener("DOMContentLoaded", () => {
 	burger.addEventListener("click", () => {
 		burger.classList.toggle("cross");
 		menu.classList.toggle("down");
-				
+		if ((bodyDoc.classList.contains("webinar")) || (bodyDoc.classList.contains("thanks"))) {
+			btnRecord[0].classList.add("menu__btn_active");
+		}
+	});
+	
+	btnRecord.forEach(item => {
+		item.addEventListener("click", e => {
+			if ((bodyDoc.classList.contains("webinar")) || (bodyDoc.classList.contains("thanks"))) {
+				e.preventDefault();
+				showModal(popup);
+			}
+		});
+	});
+	
+	cross.addEventListener("click", () => {
+		hideModal(popup);
 	});
 	
 	// Validate
@@ -171,57 +279,19 @@ window.addEventListener("DOMContentLoaded", () => {
 		}
 	});
 	
-	function pattern(label, input, btn, wrapper, mod = "", e) {
+	// Chat
+	let chat = document.getElementById("chat");
+	
+	chat.addEventListener("click", function(e) {
 		e.preventDefault();
 		
-		let errors = wrapper.querySelectorAll(".record__error");
-		
-		for (let i = 0; i < errors.length; i++) {
-			errors[i].remove();
+		if (!(bodyDoc.classList.contains("webinar"))) {
+			window.open("webinar.html#messenger", "_blank");
+		} else {
+			window.open("webinar.html#messenger", "_self");
 		}
-		
-		for (let i = 0; i < input.length; i++) {
-			if (!input[i].value) {
-				let error = document.createElement("div");
-				
-				error.classList.add("record__error");
-				
-				if (mod == null) {
-					mod = "";
-				}
-				
-				error.classList.add("record__error" + (i + 1) + mod);
-				
-				if (i == 0) {
-					error.innerHTML = "Введите имя";
-				} else if (i == 1) {
-					error.innerHTML = "Введите номер телефона";
-				} else {
-					error.innerHTML = "Введите почту";
-				}
-				
-				// Неверный формат номера телефона
-								
-				wrapper.appendChild(error);
-				
-				if (i <= 1) {
-					wrapper.insertBefore(error, label[i + 1]);
-				} else {
-					wrapper.insertBefore(error, btn);
-				}
-			}
-		}
-		
-		if (/[^a-zа-яё]/i.test(input[0].value)) {
-			let error = document.createElement("div");
-				
-			error.classList.add("record__error");
-			error.innerHTML = "Неверное имя";
-			wrapper.appendChild(error);
-			wrapper.insertBefore(error, label[1]);
-		}
-	}
-	
+	});
+			
 	// Pages
 	if (!(bodyDoc.classList.contains("webinar")) && !(bodyDoc.classList.contains("thanks"))) {
 		// Play
@@ -243,30 +313,25 @@ window.addEventListener("DOMContentLoaded", () => {
 		});
 		
 		// Take part
-		let btnRecord = document.querySelectorAll("#btn-header, #btn-know, #btn-whom"),
-			cross = document.getElementById("cross"),
-			curtain = document.getElementById("curtain"),
-			popup = document.getElementById("popup");
-			
-		btnRecord.forEach(function(item) {
-			item.addEventListener("click", (e) => {
+		btnRecord.forEach(item => {
+			item.addEventListener("click", e => {
 				e.preventDefault();
 				showModal(popup);
 			});
-			
-			cross.addEventListener("click", () => {
-				hideModal(popup);
-			});
-			
-			curtain.addEventListener("click", () => {
-				hideModal(popup);
-			});
+		});
+		
+		curtain.addEventListener("click", () => {
+			hideModal(popup);
 		});	
+		
+		cross.addEventListener("click", () => {
+			hideModal(popup);
+		});
 	}
 	
 	if (bodyDoc.classList.contains("webinar")) {
 		
-		// Chat
+		// Messenger
 		let messenger = document.getElementById("messenger"),
 			container = document.createElement("form"),
 			txtAElem = document.getElementById("txt"),
@@ -280,23 +345,18 @@ window.addEventListener("DOMContentLoaded", () => {
 		container.classList.add("comments__chat");
 		
 		// Card
-		let card = document.querySelectorAll("#platinum-card, #gold-card, #silver-card"),
-			cardScore = document.querySelectorAll("#platinum-score, #gold-score, #silver-score"),
-			cardDescr = document.querySelectorAll("#platinum-descr, #gold-descr, #silver-descr");
-			
-		cardScore.forEach(function(item, i) {
+		cardElems()[1].forEach(function(item, i) {
 			item.addEventListener("click", () => {
 				if (window.matchMedia("(max-width: 1366px)").matches) {
-					card[i].classList.toggle("products__card_active");
-					cardScore[i].classList.toggle("products__title_active");
-					cardDescr[i].classList.toggle("products__descr_active");
+					cardElems()[0][i].classList.toggle("products__card_active");
+					item.classList.toggle("products__title_active");
+					cardElems()[2][i].classList.toggle("products__descr_active");
 				}
 			});
 		});
 			
 		// Buy
 		let buy = document.querySelectorAll("#buy-platinum, #buy-gold, #buy-silver"),
-			payment = document.getElementById("payment"),
 			name = document.getElementById("product"),
 			price = document.getElementById("price"),
 			productsTitle = document.querySelectorAll("#platinum-title, #gold-title, #silver-title"),
@@ -305,14 +365,19 @@ window.addEventListener("DOMContentLoaded", () => {
 		buy.forEach(function(item, i) {
 			item.addEventListener("click", e => {
 				e.preventDefault();
+				
 				showModal(payment);
+				document.body.style.overflow = "hidden";
+				
+				payDim();
 							
 				name.innerHTML = productsTitle[i].innerHTML;
 				price.innerHTML = productsPrice[i].innerHTML;				
 			});
 			
 			curtain.addEventListener("click", () => {
-				hideModal(popup);
+				hideModal(payment);
+				document.body.style.overflow = "";
 			});
 		})
 		
@@ -334,44 +399,33 @@ window.addEventListener("DOMContentLoaded", () => {
 			tnsSet = document.querySelector(".reviews__pack, .tns-slider, .tns-carousel, .tns-subpixel, .tns-calc, .tns-horizontal"),
 			tnsGroup = document.querySelectorAll(".reviews__board, .tns-item"),
 			slider = tns({
-				container: '.reviews__pack',
+				container: ".reviews__pack",
 				items: 1,
 				slideBy: 1,
 				autoplay: true,
 				autoplayButtonOutput: false,
 				autoplayTimeout: 2500,
 				controls: false,
-				navContainer: 'ul.reviews__dots',
-				navPosition: 'bottom',
+				navContainer: "ul.reviews__dots",
+				navPosition: "bottom",
 				responsive: {
 					768: {
-						// autoHeight: true,
 						autoplay: false,
-						// autoWidth: true,
-						// center: true,
+						controlsContainer: ".reviews__arrows",
 						fixedWidth: 240,
-						controlsContainer: '.reviews__arrows',
 						items: 3,
 						mouseDrag: true,
 						nav: false,
-						// onInit: function(info) {
-							// console.log(info.container);
-						// },
 						preventScrollOnTouch: "force"
+					},
+					1025: {
+						fixedWidth: 255
+					},
+					1367: {
+						fixedWidth: 308
 					}
 				}
 			});
-		
-		// tnsGroup.forEach(function(item) {
-			// item.watch("transform", function() {
-				// console.log("Change!");
-			// });
-		// });
-		
-		// Object.defineProperty(tnsSet, "style", {
-			// get: () => {
-				// console.log("Property");
-		// }});
 		
 		prev.addEventListener("click", function() {
 			slider.goTo("prev");
@@ -380,26 +434,9 @@ window.addEventListener("DOMContentLoaded", () => {
 		next.addEventListener("click", function() {
 			slider.goTo("next");
 		});
-		
-		// if (window.matchMedia("min-width: 768px")) {
-			// // tnsOuter.style.marginLeft = "-17px";
-			// // tnsItem.forEach(function(item) {
-				// // item.style.width = "230px";
-			// // });
-		// }
-		
-		// if (((window.matchMedia("(min-width: 768px) and (orientation: portrait)").matches)) || ((window.matchMedia("(min-width: 768px) and (orientation: landscape)").matches))) {
-			// tnsInner.style.marginLeft = "17px";
-		// }
-		
-		// if (window.matchMedia("(min-width: 992px) and (orientation: landscape)").matches) {
-			// tnsOuter.style.margin = "0";
-			// tnsInner.style.marginLeft = "93px";
-		// }
 	}
 	
 	if (bodyDoc.classList.contains("thanks")) {
-		
 		// Present
 		let btnPresent = document.getElementById("btn-present"),
 			curtain = document.getElementById("curtain"),
@@ -447,30 +484,15 @@ window.addEventListener("scroll", () => {
 });
 
 window.addEventListener("resize", () => {
-	let tnsOuter = document.querySelector(".tns-outer"),
-		tnsInner = document.querySelector(".tns-inner"),
-		tnsProps = document.querySelector(".tns-slider, .tns-carousel, .tns-subpixel, .tns-calc, .tns-horizontal"),
-		tnsItem = document.querySelectorAll(".reviews__board, .tns-item");
-	
-	// tnsItem.forEach(function(item) {
-		// item.style.width = "calc(9.09091%)";
-	// });
-	
-	if (window.matchMedia("min-width: 768px")) {
-		// tnsOuter.style.marginLeft = "-17px";
-		// tnsItem.forEach(function(item) {
-			// item.style.width = "230px";
-		// });
+	if (window.innerWidth >= 1367) {
+		cardElems()[0].forEach((item, i) => {
+			if (!(item.classList.contains("products__card_active"))) {
+				item.classList.add("products__card_active");
+				cardElems()[1][i].classList.add("products__title_active");
+				cardElems()[2][i].classList.add("products__descr_active");
+			}
+		});
 	}
 	
-	// tnsProps.style.transform = "none";
-	
-	// if (((window.matchMedia("(min-width: 768px) and (orientation: portrait)").matches)) || ((window.matchMedia("(min-width: 768px) and (orientation: landscape)").matches))) {
-		// tnsInner.style.marginLeft = "17px";
-	// }
-	
-	// if (window.matchMedia("(min-width: 992px) and (orientation: landscape)").matches) {
-		// tnsOuter.style.margin = "0";
-		// tnsInner.style.marginLeft = "93px";
-	// }
+	payDim();
 })
