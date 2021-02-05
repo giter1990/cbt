@@ -1,4 +1,5 @@
-let payment = document.getElementById("payment");
+let inputFields, 
+	payment = document.getElementById("payment");
 
 function cardElems() {
 	return ([
@@ -16,32 +17,11 @@ function payDim() {
 }
 
 window.addEventListener("DOMContentLoaded", () => {
-	let anyElem = document.querySelectorAll("*:not(html, body, .container, .container > *, #burger)"),
-		bonum = document.getElementById("bonum"),
-		reviewsSlider = document.querySelectorAll("#prev, #next"),
-		bodyDoc = document.getElementById("bodyDoc"),
+	let bodyDoc = document.getElementById("bodyDoc"),
 		btnRecord = document.querySelectorAll("#btn-header, #btn-menu, #btn-know, #btn-whom"),
 		cross = document.getElementById("cross"),
 		curtain = document.getElementById("curtain"),
 		popup = document.getElementById("popup");
-	
-	anyElem.forEach(item => {
-		item.addEventListener("mouseover", e => {
-			switch (e.target) {
-				case bonum.childNodes[0]:
-				case reviewsSlider[0]:
-				case reviewsSlider[1]:
-					item.style.transition = "0s";
-					break;
-				default: 
-					item.style.transition = ".5s";
-			}
-		});
-		
-		item.addEventListener("mouseout", e => {
-			item.style.transition = "0s";
-		})
-	});
 	
 	// Functions
 	function showModal(windowUnit) {
@@ -87,8 +67,6 @@ window.addEventListener("DOMContentLoaded", () => {
 					error.innerHTML = "Введите почту";
 				}
 				
-				// Неверный формат номера телефона
-								
 				wrapper.appendChild(error);
 				
 				if (i <= 1) {
@@ -109,6 +87,29 @@ window.addEventListener("DOMContentLoaded", () => {
 		}
 	}
 	
+	// Hover
+	let anyElem = document.querySelectorAll("*:not(html, body, .container, .container > *, #burger)"),
+		bonum = document.getElementById("bonum"),
+		reviewsSlider = document.querySelectorAll("#prev, #next");
+		
+	anyElem.forEach(item => {
+		item.addEventListener("mouseover", e => {
+			switch (e.target) {
+				case bonum.childNodes[0]:
+				case reviewsSlider[0]:
+				case reviewsSlider[1]:
+					item.style.transition = "0s";
+					break;
+				default: 
+					item.style.transition = ".5s";
+			}
+		});
+		
+		item.addEventListener("mouseout", e => {
+			item.style.transition = "0s";
+		});
+	});	
+		
 	// Video
 	let playWrapper = document.getElementById("video"),
 		iframe = document.getElementById("frame"),
@@ -124,29 +125,29 @@ window.addEventListener("DOMContentLoaded", () => {
 	
 	// Timer
 	let id = setInterval(() => {
-		let daysSet = document.querySelector("days"),
+		let daysSet = document.getElementById("days"),
 			progressDay = document.getElementById("progress-day"),
 			progressHour = document.getElementById("progress-hour"),
 			progressMinute = document.getElementById("progress-minute"),
 			progressSecond = document.getElementById("progress-second"),
-			dayStart = 20,
+			dayStart = 3,
 			dayDiff,
-			dayTotal = 11,
+			dayTotal = 8,
 			d = new Date(),
 			dateEnd = new Date();
 		
 		dateEnd.setSeconds = 0;
 		dateEnd.setMinutes = 0;
 		dateEnd.setHours = 24;
-		dateEnd.setDate = 31;
+		dateEnd.setDate = 10;
 		
-		/* Секунды */
+		/* Seconds */
 		let seconds = d.getSeconds(),
 			secondsEnd;
 		
 		secondsEnd = (seconds == 0) ? 00 : 60 - seconds; 
 		
-		/* Минуты */
+		/* Minutes */
 		let minutes = d.getMinutes(),
 			minutesEnd;
 			
@@ -158,13 +159,13 @@ window.addEventListener("DOMContentLoaded", () => {
 			minutesEnd = 60 - (minutes + 1);
 		}
 		
-		/* Часы */
+		/* Hours */
 		let hours = d.getHours(),
 			hoursEnd;
 		
 		hoursEnd = ((minutes == 0) && (seconds == 0)) ? (24 - hours) : (24 - (hours + 1));
 		
-		/* Дни */
+		/* Days */
 		let days = d.getDate(),
 			daysEnd;
 		
@@ -216,7 +217,7 @@ window.addEventListener("DOMContentLoaded", () => {
 		progressHour.style.width = (hoursEnd / 24 * 100) + "%";
 		
 		dayDiffPass = d.getDate() - dayStart;
-		dayLeft = dayTotal - dayDiffPass ;
+		dayLeft = dayTotal - dayDiffPass;
 		
 		if ((hoursEnd !== 0) && (minutesEnd == 0)) {
 			dayLeft = dayLeft + (hoursEnd / 24);
@@ -291,9 +292,101 @@ window.addEventListener("DOMContentLoaded", () => {
 			window.open("webinar.html#messenger", "_self");
 		}
 	});
+	
+	// Lazy load
+	let bLazy = new Blazy({
+		selector: "img",
+		success: function(element) {
+			setTimeout(function() {
+				let parent = element.parentNode;
+				
+				parent.className = parent.className.replace(/\bloading\b/,'');
+			}, 200);
+		}
+	});
+	
+	// Mask
+	let maskedInput = document.querySelectorAll("#phone-master, #phone-want, #phone-popup");
+	
+	for (let i = 0; i < maskedInput.length; i++) {
+		new IMask(maskedInput[i], {
+			mask: "+{38} (000) 000 00 00"
+		});
+	}
+	
+	// Form (data)
+	let	statusMessage = document.createElement("div"),
+		message = {
+			loading: "Отправка заявки...",
+			failure: "Ошибка отправки заявки"
+		},
+		getRequest = document.querySelector("#accepted");
+		
+	statusMessage.classList.add("record__status");
+	
+	formUnit.forEach((item, i) => {
+		item.addEventListener("submit", e => {
+			e.preventDefault();
+			
+			item.appendChild(statusMessage);
+			
+			let formData = new FormData(item);
+			
+			function postData(data) {
+				return new Promise(function(resolve, reject) {
+					let request = new XMLHttpRequest(); 
+					
+					request.open('POST', 'mailer/record.php');
+					request.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+					
+					request.addEventListener("readystatechange", function() { 
+						if (request.readyState < 4) {
+							resolve();
+						} else if ((request.readyState == 4) && (request.status == 200)) {
+							resolve();
+						} else {
+							reject();
+						}
+					});
+					
+					request.send(data);
+				});
+			};
+			
+			function clearInput() {
+				inputFields = item.getElementsByTagName("input");
+				
+				for (let key in inputFields) {
+					inputFields[key].value = "";
+				}
+			};
+			
+			postData(formData)
+				.then(() => statusMessage.innerHTML = message.loading)
+				.then(() => {
+					statusMessage.innerHTML = "";
+					showModal(getRequest);
+				})
+				.catch(() => statusMessage.innerHTML = message.failure)
+				.then(clearInput)
+		});
+	});
+	
+	// Accepted
+	let accepted = document.getElementById("accepted"),
+		crossAccepted = document.getElementById("close");
+		
+	curtain.addEventListener("click", () => {
+		hideModal(accepted);
+	});	
+	
+	crossAccepted.addEventListener("click", () => {
+		hideModal(accepted);
+	});
 			
 	// Pages
 	if (!(bodyDoc.classList.contains("webinar")) && !(bodyDoc.classList.contains("thanks"))) {
+		
 		// Play
 		let watch = document.getElementById("watch");
 		
@@ -335,7 +428,13 @@ window.addEventListener("DOMContentLoaded", () => {
 		let messenger = document.getElementById("messenger"),
 			container = document.createElement("form"),
 			txtAElem = document.getElementById("txt"),
-			btnMessenger = document.getElementById("commentsBtn");
+			statusMessage = document.createElement("div"),
+			btnMessenger = document.getElementById("commentsBtn"),
+			message = {
+				loading: "Передача сообщения...",
+				success: "Сообщение отправлено",
+				failure: "Ошибка отправки сообщения"
+			};
 		
 		txtAElem.parentNode.insertBefore(container, txtAElem);
 		container.appendChild(txtAElem);
@@ -344,7 +443,65 @@ window.addEventListener("DOMContentLoaded", () => {
 		messenger.appendChild(container);
 		container.classList.add("comments__chat");
 		
-		// Card
+		container.addEventListener("submit", e => {
+			e.preventDefault();
+			
+			statusMessage.style.font = "16px/20px 'Cera-Pro-Medium'";
+			container.appendChild(statusMessage);
+			
+			let formData = new FormData(container);
+			
+			function postData(data) {
+				return new Promise(function(resolve, reject) {
+					let request = new XMLHttpRequest(); 
+					
+					request.open('POST', 'mailer/messenger.php');
+					request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+					
+					request.addEventListener("readystatechange", function() { 
+						if (request.readyState < 4) {
+							resolve();
+						} else if ((request.readyState == 4) && (request.status == 200)) {
+							resolve();
+						} else {
+							reject();
+						}
+					});
+					
+					request.send(data);
+				});
+			};
+			
+			function clearInput() {
+				inputFields = container.getElementsByTagName("input");
+				inputFields.value = "";
+			};
+			
+			postData(formData)
+				.then(() => {
+					statusMessage.innerHTML = message.loading;
+					statusMessage.style.padding = "10px 0 10px 20px";
+				})
+				.then(() => {
+					statusMessage.innerHTML = message.success;
+					statusMessage.style.padding = "10px 0 10px 20px";
+				})
+				.catch(() => statusMessage.innerHTML = message.failure)
+				.then(clearInput)
+		});
+		
+		// Card (reload)
+		if (window.matchMedia("(min-width: 1367px)").matches) {
+			cardElems()[0].forEach((item, i) => {
+				if (!(item.classList.contains("products__card_active"))) {
+					item.classList.add("products__card_active");
+					cardElems()[1][i].classList.add("products__title_active");
+					cardElems()[2][i].classList.add("products__descr_active");
+				}
+			});
+		}
+		
+		// Card (click)
 		cardElems()[1].forEach(function(item, i) {
 			item.addEventListener("click", () => {
 				if (window.matchMedia("(max-width: 1366px)").matches) {
@@ -379,11 +536,48 @@ window.addEventListener("DOMContentLoaded", () => {
 				hideModal(payment);
 				document.body.style.overflow = "";
 			});
-		})
+		});
+		
+		// Disabled (pay24)
+		let pay24 = document.querySelector("#pay-24[disabled]");
+		
+		if (pay24) {
+			pay24.classList.add("payment__btn_disabled");
+		
+			pay24.addEventListener("mouseover", () => {
+				pay24.style.background = "#b1bfe0";
+				pay24.style.borderColor = "#b1bfe0";
+				pay24.style.color = "#fff";
+			});
+			
+			pay24.addEventListener("focus", () => {
+				pay24.style.outline = "none";
+				pay24.childNodes[1].style.borderColor = "#7ab72b";
+			});
+			
+			pay24.addEventListener("click", e => {
+				e.preventDefault();
+				pay24.style.borderColor = "#b1bfe0";
+				pay24.childNodes[1].style.borderColor = "#7ab72b";
+			});
+		}
+		
+		// Disabled (buttons)
+		let fieldsPay = document.querySelectorAll("#number-card[disabled], #term[disabled], #cvv2[disabled]"),
+			question = document.getElementById("question");
+			
+		fieldsPay.forEach(item => {
+			if (item) {
+				item.classList.add("payment__input_disabled");
+				item.removeAttribute("placeholder");
+				item.style.borderBottomColor = "transparent";
+				question.style.display = "none";	
+			}
+		});
 		
 		// Payment
-		let question = document.getElementById("question"),
-			promptText = document.getElementById("prompt");
+		let promptText = document.getElementById("prompt"),
+			formPay = document.getElementById("form-pay");
 			
 		question.addEventListener("mouseover", () => {
 			promptText.style.animation = "opacity 1s forwards";
@@ -393,30 +587,89 @@ window.addEventListener("DOMContentLoaded", () => {
 			promptText.style.animation = "none";
 		});
 		
-		// Slider-reviews
+		formPay.addEventListener("submit", e => {
+			e.preventDefault();
+			
+			formPay.appendChild(statusMessage),
+			message = {
+				loading: "Передача платёжных данных...",
+				success: "Платёжные данные отправлены",
+				failure: "Ошибка отправки платёжных данных"
+			};
+			
+			let formData = new FormData(formPay);
+			
+			function postData(data) {
+				return new Promise(function(resolve, reject) {
+					let request = new XMLHttpRequest(); 
+					
+					request.open('POST', 'mailer/payment.php');
+					request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+					
+					request.addEventListener("readystatechange", function() { 
+						if (request.readyState < 4) {
+							resolve();
+						} else if ((request.readyState == 4) && (request.status == 200)) {
+							resolve();
+						} else {
+							reject();
+						}
+					});
+					
+					request.send(data);
+				});
+			};
+			
+			function clearInput() {
+				inputFields = formPay.getElementsByTagName("input");
+				
+				for (let key in inputFields) {
+					inputFields[key].value = "";
+				}
+			};
+			
+			postData(formData)
+				.then(() => {
+					statusMessage.innerHTML = message.loading;
+					statusMessage.style.marginTop = "-10px";
+				})
+				.then(() => {
+					statusMessage.innerHTML = message.success;
+					statusMessage.style.marginTop = "-10px";
+				})
+				.catch(() => statusMessage.innerHTML = message.failure)
+				.then(clearInput)
+		});
+		
+		// Slider (reviews)
 		let	prev = document.querySelector('#prev'),
 			next = document.querySelector('#next'),
-			tnsSet = document.querySelector(".reviews__pack, .tns-slider, .tns-carousel, .tns-subpixel, .tns-calc, .tns-horizontal"),
-			tnsGroup = document.querySelectorAll(".reviews__board, .tns-item"),
+			reviewsBoard = document.querySelectorAll(".reviews__board"),
+			progressBar = document.querySelectorAll(".stripe_reviews .stripe__progress"),
+			commentBoard = document.querySelectorAll(".reviews__comment"),
+			board,
+			stripeWrapper,
+			stripeProgress,
+			comment,			
 			slider = tns({
 				container: ".reviews__pack",
 				items: 1,
-				slideBy: 1,
-				autoplay: true,
+				slideBy: "page",
+				autoplay: false,
 				autoplayButtonOutput: false,
-				autoplayTimeout: 2500,
+				autoplayTimeout: 4000,
 				controls: false,
+				mouseDrag: true,
 				navContainer: "ul.reviews__dots",
 				navPosition: "bottom",
+				preventScrollOnTouch: "auto",
 				responsive: {
 					768: {
+						arrowKeys: true,
 						autoplay: false,
-						controlsContainer: ".reviews__arrows",
 						fixedWidth: 240,
 						items: 3,
-						mouseDrag: true,
-						nav: false,
-						preventScrollOnTouch: "force"
+						nav: false
 					},
 					1025: {
 						fixedWidth: 255
@@ -434,9 +687,84 @@ window.addEventListener("DOMContentLoaded", () => {
 		next.addEventListener("click", function() {
 			slider.goTo("next");
 		});
+		
+		reviewsBoard.forEach((item, i) => {
+			if (item.classList.contains("tns-slide-active")) {
+				progressBar[i].style.animation = "progress 1.5s forwards";
+				commentBoard[i].style.animation = "opacity 1.5s forwards";
+			}
+		});	
+		
+		let customizedFunctionBefore = function(info) {
+			let objElems = info.container.children;
+							
+			for (let key in objElems) {
+				if (key < 21) {
+					board = objElems[key].children[0];
+					stripeWrapper = board.children[2];
+					stripeProgress = stripeWrapper.children[0];
+					comment = board.children[3];
+					
+					board.style.transitionDuration = ".3s";
+					
+					for (let key in stripeProgress) {
+						stripeProgress.style.animation = "none";
+						comment.style.animation = "none";
+					}	
+				}
+			}
+		};
+		
+		let customizedFunction = function(info) {
+			let objElems = info.container.children;
+				
+			for (let key in objElems) {
+				if (key < 21) {
+					board = objElems[key].children[0];
+					stripeWrapper = board.children[2];
+					stripeProgress = stripeWrapper.children[0];
+					comment = board.children[3];
+					
+					board.style.transitionDuration = "0s";
+					
+					for (let key in stripeProgress) {
+						stripeProgress.style.animation = "progress 1.5s forwards";
+						comment.style.animation = "opacity 1.5s forwards";
+					}	
+				}
+			}		
+		};
+		
+		slider.events.on('transitionStart', customizedFunctionBefore);
+		slider.events.on('transitionEnd', customizedFunction);
+
+		// Slider (labels)
+		let labels = document.getElementById("#labels"),
+			sliderLabels = tns({
+				container: "#labels",
+				items: 3.5,
+				slideBy: 1,
+				autoplay: true,
+				autoplayButtonOutput: false,
+				autoplayHoverPause: true,
+				autoplayTimeout: 1500,
+				controls: false,
+				nav: false,
+				preventScrollOnTouch: "force",
+				responsive: {
+					768: {
+						autoplay: false,
+						items: 8
+					},
+					1025: {
+						mouseDrag: true
+					}
+				}
+			});
 	}
 	
 	if (bodyDoc.classList.contains("thanks")) {
+		
 		// Present
 		let btnPresent = document.getElementById("btn-present"),
 			curtain = document.getElementById("curtain"),
@@ -449,16 +777,30 @@ window.addEventListener("DOMContentLoaded", () => {
 		
 		curtain.addEventListener("click", () => {
 			hideModal(getPresent);
-		})	
+		});
+		
+		// Bubbles
+		let bubbles = document.querySelectorAll(".present__icon")
+		
+		bubbles.forEach((item, i) => {
+			switch (i) {
+				case 0:
+				case 1:
+				case 3:
+				case 5:
+					item.setAttribute("href", "https://www.viber.com/ru/");
+					break;
+				default: 
+					item.setAttribute("href", "https://www.telegram.com/");
+					break;
+			};
+		});
 	}	
 });
 
 window.addEventListener("scroll", () => {
 	// Load
 	let	progresses = document.querySelectorAll("#progress-01, #progress-02, #progress-03"),
-		progress01 = document.getElementById("progress-01"),
-		progress02 = document.getElementById("progress-02"),
-		progress03 = document.getElementById("progress-03"),
 		textCard = document.querySelectorAll("#text-01, #text-02, #text-03"),
 		card = document.querySelectorAll("#card-01, #card-02, #card-03");
 		
@@ -484,6 +826,7 @@ window.addEventListener("scroll", () => {
 });
 
 window.addEventListener("resize", () => {
+	// Buy
 	if (window.innerWidth >= 1367) {
 		cardElems()[0].forEach((item, i) => {
 			if (!(item.classList.contains("products__card_active"))) {
@@ -495,4 +838,4 @@ window.addEventListener("resize", () => {
 	}
 	
 	payDim();
-})
+});
