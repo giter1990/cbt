@@ -119,8 +119,7 @@ window.addEventListener("DOMContentLoaded", () => {
 		e.preventDefault();
 		
 		play.style.display = "none";
-		playWrapper.style.alignItems = "stretch";
-		iframe.style.display = "block";
+		iframe.style.opacity = 1;
 	});
 	
 	// Timer
@@ -295,7 +294,7 @@ window.addEventListener("DOMContentLoaded", () => {
 	
 	// Lazy load
 	let bLazy = new Blazy({
-		selector: "img",
+		selector: "img, iframe",
 		success: function(element) {
 			setTimeout(function() {
 				let parent = element.parentNode;
